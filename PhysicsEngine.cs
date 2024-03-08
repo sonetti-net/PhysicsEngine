@@ -18,9 +18,11 @@ namespace Physics
 
         [Header("Engine")]
         [SerializeField] Vector3 Gravity = new Vector3(0, -9.8f, 0);
+        [SerializeField] float G = 6.67430e-11f;
 
-        PhysicsCollider[] physicsColliders;
-        PhysicsBody[] physicsBodies;
+
+        List<PhysicsBody> physicsBodies = new List<PhysicsBody>();
+        List<PhysicsCollider> physicsColliders = new List<PhysicsCollider>();
 
         void UpdateVelocity()
         {
@@ -41,15 +43,42 @@ namespace Physics
 
         void UpdateCollisions()
         {
-            for (int i = 0; i < physicsColliders.Length - 1; i++)
+            for (int i = 0; i < physicsColliders.Count - 1; i++)
             {
                 PhysicsCollider bodyA = physicsColliders[i];
 
-                for (int j = i + 1; j < physicsColliders.Length; j++)
+                for (int j = i + 1; j < physicsColliders.Count; j++)
                 {
+                    
                     PhysicsCollider bodyB = physicsColliders[j];
 
-                    Collision collision = bodyA.Colliding(bodyB);
+                    // Do not do collision if both are static.
+                    if (bodyA.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static && bodyB.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static)
+                        continue;
+
+                        Collision collision = bodyA.Colliding(bodyB);
+
+                }
+            }
+        }
+
+        void HandleGravity()
+		{
+            for (int i = 0; i < physicsBodies.Count - 1; i++)
+            {
+                PhysicsBody bodyA = physicsBodies[i];
+
+                for (int j = i + 1; j < physicsBodies.Count; j++)
+                {
+                    PhysicsBody bodyB = physicsBodies[j];
+
+                    Vector3 direction = (bodyB.transform.position - bodyA.transform.position);
+                    float d = direction.magnitude;
+
+                    float F = (G * bodyA.mass * bodyB.mass)/(d * d);
+                    Vector3 gravityForce = (direction.normalized * F);
+                    bodyA.AddForce(gravityForce * Time.deltaTime);
+                    bodyB.AddForce(-gravityForce * F * Time.deltaTime);
 
                 }
             }
@@ -63,13 +92,30 @@ namespace Physics
 			}
 		}
 
+        public void AddNewBody(GameObject go)
+		{
+            physicsBodies.Add(go.GetComponent<PhysicsBody>());
+            physicsColliders.Add(go.GetComponent<PhysicsCollider>());
+		}
+
         // Start is called before the first frame update
         void Start()
         {
             physicsDebug = this.GetComponent<PhysicsDebug>();
-            physicsBodies = GameObject.FindObjectsOfType<PhysicsBody>();
-            physicsColliders = GameObject.FindObjectsOfType<PhysicsCollider>();
+
+            physicsBodies.AddRange(GameObject.FindObjectsOfType<PhysicsBody>());
+            physicsColliders.AddRange(GameObject.FindObjectsOfType<PhysicsCollider>());
         }
+
+        void NarrowPhase()
+		{
+
+		}
+
+        void BroadPhase()
+		{
+
+		}
 
         // Update is called once per frame
         void Update()
@@ -78,6 +124,7 @@ namespace Physics
             UpdatePositions();
             UpdateCollisions();
             DrawDebugLines();
+            HandleGravity();
         }
 
 		void OnValidate()

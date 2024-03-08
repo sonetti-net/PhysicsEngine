@@ -20,9 +20,8 @@ namespace Physics
         }
 
 
-        public BodyType bodyType;
+        public BodyType bodyType = BodyType.Dynamic;
 
-        public Vector3 position;
         public Vector3 linearVelocity = Vector3.zero;
         public Vector3 acceleration = Vector3.zero;
         public float rotation;
@@ -30,6 +29,9 @@ namespace Physics
 
         public float density;
         public float mass = 1f;
+        public float invMass = 0f;
+
+
         public float angularVelocity;
         public float restitution;
         public float area;
@@ -38,7 +40,11 @@ namespace Physics
         public void AddForce(Vector3 force)
         {
             if (this.bodyType != BodyType.Static)
-                this.linearVelocity += force * Time.deltaTime;
+			{
+                Vector3 acceleration = force / this.mass;
+                this.linearVelocity += acceleration * Time.deltaTime;
+            }
+                
         }
 
         public void Move(Vector3 force)
@@ -46,6 +52,11 @@ namespace Physics
             if (this.bodyType != BodyType.Static)
                 this.transform.position += force;
         }
+
+		private void OnValidate()
+		{
+            invMass = (bodyType == BodyType.Static) ? 0 : 1f / mass;
+		}
 	}
 }
 

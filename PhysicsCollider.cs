@@ -184,6 +184,34 @@ namespace Physics
             return collision;
 		}
 
+        public void ResolveCollision(Collision collision, PhysicsCollider other)
+        {
+
+            PhysicsBody bodyA = this.GetComponent<PhysicsBody>();
+            PhysicsBody bodyB = other.GetComponent<PhysicsBody>();
+
+            bodyA.Move(-collision.normal * collision.intersection);
+            bodyB.Move(collision.normal * collision.intersection);
+
+            Vector3 relativeVelocity = bodyB.linearVelocity - bodyA.linearVelocity;
+
+            if (Vector3.Dot(relativeVelocity, collision.normal) > 0f)
+			{
+                return;
+			}
+
+            float e = Mathf.Min(bodyA.restitution, bodyB.restitution);
+            float j = -(1f + e) * Vector3.Dot(relativeVelocity, collision.normal);
+            j /= (bodyA.invMass) + (bodyB.invMass);
+
+            Vector3 impulse = j * collision.normal;
+
+
+
+            bodyA.AddForce(-1 * (impulse * bodyA.invMass));
+            bodyB.AddForce( 1 * (impulse * bodyB.invMass));
+        }
+
         public Collision PointCollision(Point thisPointCollider, Point otherPointCollider)
 		{
             Collision collision = new Collision();
@@ -294,14 +322,7 @@ namespace Physics
             return collision;
         }
 
-        public void ResolveCollision(Collision collision, PhysicsCollider other)
-		{
-
-            this.GetComponent<PhysicsBody>().Move(-collision.normal * collision.intersection);
-            other.GetComponent<PhysicsBody>().Move(collision.normal * collision.intersection);
-		}
-
-		private void OnValidate()
+        private void OnValidate()
 		{
             switch (colliderType)
             {
