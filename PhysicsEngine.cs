@@ -45,17 +45,12 @@ namespace Physics
             {
                 PhysicsCollider bodyA = physicsColliders[i];
 
-
                 for (int j = i + 1; j < physicsColliders.Length; j++)
                 {
                     PhysicsCollider bodyB = physicsColliders[j];
 
                     Collision collision = bodyA.Colliding(bodyB);
 
-                    if (collision.colliding)
-					{
-
-					}
                 }
             }
         }

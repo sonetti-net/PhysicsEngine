@@ -37,12 +37,14 @@ namespace Physics
 
         public void AddForce(Vector3 force)
         {
-            this.linearVelocity += force * Time.deltaTime;
+            if (this.bodyType != BodyType.Static)
+                this.linearVelocity += force * Time.deltaTime;
         }
 
         public void Move(Vector3 force)
         {
-            this.transform.position += force;
+            if (this.bodyType != BodyType.Static)
+                this.transform.position += force;
         }
 	}
 }

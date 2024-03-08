@@ -45,13 +45,29 @@ namespace Physics
             Bottom
 		}
         public float width, height;
-
+        public Vector3 min, max;
         public AARectangle(Vector3 position, float width, float height) :base(position)
 		{
             this.width = width;
             this.height = height;
             base.shapeType = ShapeType.AABB;
 		}
+
+        public AARectangle(Transform transform) : base(transform.position)
+        {
+            Matrix4x4 thisT = transform.localToWorldMatrix;
+
+            min = thisT.MultiplyPoint3x4(-0.5f * transform.localScale);
+            max = thisT.MultiplyPoint3x4(0.5f * transform.localScale);
+            base.shapeType = ShapeType.AABB;
+        }
+
+        public static Vector2 SetSize(float width, float height)
+		{
+            Vector2 result = Vector2.zero;
+
+            return result;
+        }
 
         public Vector3 GetSide(Side side)
 		{
@@ -111,7 +127,7 @@ namespace Physics
         public Collision Colliding(PhysicsCollider other)
 		{
             Collision collision = new Collision();
-
+            
             if (this.colliderType == ColliderType.POINT)
 			{
                 Point point = new Point(this.transform.position, 0.2f);
@@ -134,7 +150,7 @@ namespace Physics
                     collision = CircleRectangleCollision(thisCircleCollider, otherRectCollider);
 				}
             }
-
+            
             if (this.colliderType == ColliderType.AXIS_RECTANGLE)
             {
                 AARectangle thisRectCollider = new AARectangle(this.transform.position, this.transform.localScale.x, this.transform.localScale.y);
@@ -145,6 +161,7 @@ namespace Physics
 
                     collision = RectangleCollision(thisRectCollider, otherRectCollider);
 				}
+
 
                 if (other.colliderType == ColliderType.CIRCLE)
 				{
@@ -178,7 +195,6 @@ namespace Physics
                 collision.colliding = true;
                 collision.intersection = distance;
 			}
-
             return collision;
 		}
 
@@ -195,7 +211,6 @@ namespace Physics
             {
                 collision.normal = (otherCircleCollider.position - thisCircleCollider.position).normalized;
             }
-
             return collision;
 		}
 
@@ -203,43 +218,29 @@ namespace Physics
 		{
             Collision collision = new Collision();
 
-            Vector3 Alh = thisRectCollider.GetSide(AARectangle.Side.Left);
-            Vector3 Arh = thisRectCollider.GetSide(AARectangle.Side.Right);
-            Vector3 Atop = thisRectCollider.GetSide(AARectangle.Side.Top);
-            Vector3 Abot = thisRectCollider.GetSide(AARectangle.Side.Bottom);
 
-            Vector3 Blh = otherRectCollider.GetSide(AARectangle.Side.Left);
-            Vector3 Brh = otherRectCollider.GetSide(AARectangle.Side.Right);
-            Vector3 Btop = otherRectCollider.GetSide(AARectangle.Side.Top);
-            Vector3 Bbot = otherRectCollider.GetSide(AARectangle.Side.Bottom);
-
-            collision.colliding = (
-            thisRectCollider.position.x < otherRectCollider.position.x + otherRectCollider.width &&
-            thisRectCollider.position.x + thisRectCollider.width > otherRectCollider.position.x &&
-            thisRectCollider.position.y < otherRectCollider.position.y + otherRectCollider.height &&
-            thisRectCollider.position.y + thisRectCollider.height > otherRectCollider.position.y
-            );
+            collision.colliding = ((thisRectCollider.GetSide(AARectangle.Side.Right).x > otherRectCollider.GetSide(AARectangle.Side.Left).x) &&
+                                    (thisRectCollider.GetSide(AARectangle.Side.Left).x < otherRectCollider.GetSide(AARectangle.Side.Right).x) &&
+                                    (thisRectCollider.GetSide(AARectangle.Side.Bottom).y < otherRectCollider.GetSide(AARectangle.Side.Top).y) &&
+                                    (thisRectCollider.GetSide(AARectangle.Side.Top).y > otherRectCollider.GetSide(AARectangle.Side.Bottom).y));
 
             if (collision.colliding)
             {
-                float overlapX = Mathf.Max(0, Mathf.Min(thisRectCollider.position.x + thisRectCollider.width, otherRectCollider.position.x + otherRectCollider.width) - Mathf.Max(thisRectCollider.position.x, otherRectCollider.position.x));
-                float overlapY = Mathf.Max(0, Mathf.Min(thisRectCollider.position.y + thisRectCollider.height, otherRectCollider.position.y + otherRectCollider.height) - Mathf.Max(thisRectCollider.position.y, otherRectCollider.position.y));
+                Vector2 overlap = new Vector2(Mathf.Min(thisRectCollider.GetSide(AARectangle.Side.Right).x - otherRectCollider.GetSide(AARectangle.Side.Left).x,
+                                           otherRectCollider.GetSide(AARectangle.Side.Right).x - thisRectCollider.GetSide(AARectangle.Side.Left).x),
+                                           Mathf.Min(thisRectCollider.GetSide(AARectangle.Side.Top).y - otherRectCollider.GetSide(AARectangle.Side.Bottom).y,
+                                           otherRectCollider.GetSide(AARectangle.Side.Top).y - thisRectCollider.GetSide(AARectangle.Side.Bottom).y));
 
-                float totalOverlap = overlapX * overlapY;
-
-                float smallestArea = Mathf.Min(thisRectCollider.width * thisRectCollider.height, otherRectCollider.width * otherRectCollider.height);
-
-                collision.intersection = totalOverlap / smallestArea;
+                collision.intersection = overlap.x * overlap.y;
                 collision.normal = (otherRectCollider.position - thisRectCollider.position).normalized;
-
             }
 
             if (PhysicsEngine.detailedDebugMode == true)
             {
                 PhysicsDebug.DrawDebugLines(thisRectCollider);
                 PhysicsDebug.DrawDebugLines(otherRectCollider);
-            }
 
+            }
             return collision;
 		}
 
@@ -278,7 +279,6 @@ namespace Physics
 				{
                     collision.normal = (thisCircleCollider.position - otherRectCollider.position).normalized;
                 }
-                
             }
 
 
