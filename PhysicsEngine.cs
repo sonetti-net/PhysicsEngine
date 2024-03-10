@@ -19,6 +19,7 @@ namespace Physics
         [Header("Engine")]
         [SerializeField] Vector3 Gravity = new Vector3(0, -9.8f, 0);
         [SerializeField] float G = 6.67430e-11f;
+        [SerializeField] bool objectGravity = true;
 
 
         List<PhysicsBody> physicsBodies = new List<PhysicsBody>();
@@ -124,7 +125,10 @@ namespace Physics
             UpdatePositions();
             UpdateCollisions();
             DrawDebugLines();
-            HandleGravity();
+            if (objectGravity)
+			{
+                HandleGravity();
+            }
         }
 
 		void OnValidate()

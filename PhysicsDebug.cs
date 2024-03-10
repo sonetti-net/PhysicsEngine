@@ -26,12 +26,12 @@ namespace Physics
 
 		}
 
-        public static void DrawDebugLines(AARectangle colliderShape)
+        public static void DrawDebugLines(AABB colliderShape)
         {
-            Vector3 lh = colliderShape.GetSide(AARectangle.Side.Left);
-            Vector3 rh = colliderShape.GetSide(AARectangle.Side.Right);
-            Vector3 top = colliderShape.GetSide(AARectangle.Side.Top);
-            Vector3 bot = colliderShape.GetSide(AARectangle.Side.Bottom);
+            Vector3 lh = new Vector3(colliderShape.min.x, colliderShape.position.y, 0);
+            Vector3 rh = new Vector3(colliderShape.max.x, colliderShape.position.y, 0);
+            Vector3 top = new Vector3(colliderShape.position.x, colliderShape.max.y, 0);
+            Vector3 bot = new Vector3(colliderShape.position.x, colliderShape.min.y, 0);
 
             Debug.DrawLine(lh, PhysicsDebug.AxisIntersection(lh, PhysicsDebug.Axis.y, PhysicsDebug.MinMax.max), PhysicsConfig.SubLineColour);
             Debug.DrawLine(lh, PhysicsDebug.AxisIntersection(lh, PhysicsDebug.Axis.y, PhysicsDebug.MinMax.min), PhysicsConfig.SubLineColour);
