@@ -46,6 +46,33 @@ namespace Physics
             Debug.DrawLine(top, PhysicsDebug.AxisIntersection(top, PhysicsDebug.Axis.x, PhysicsDebug.MinMax.min), PhysicsConfig.SubLineColour);
         }
 
+        public static void DrawPoint(Vector3 point, float radius, Color col)
+		{
+            Vector2[] points = new Vector2[2];
+			points[0] = point;
+            points[1] = (point - point) * radius;
+
+            Debug.DrawLine(points[0], points[1], col);
+
+        }
+
+        public static void DrawRect(AABB rect, Color col)
+		{
+            Vector2[] points = new Vector2[4];
+            points[0] = rect.max;
+            points[1] = new Vector2(rect.min.x, rect.max.y);
+            points[2] = new Vector2(rect.min.x, rect.min.y);
+			points[3] = new Vector2(rect.max.x, rect.min.y);
+
+
+            for (int i = 0; i < points.Length -1; i++)
+			{
+                int next = (i + 1 > points.Length) ? 0 : i + 1;
+                Debug.DrawLine(points[i], points[next], col);
+			}
+            Debug.DrawLine(points[3], points[0], col);
+        }
+
         float GetLineLength()
 		{
             return lineLength;

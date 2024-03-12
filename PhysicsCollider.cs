@@ -7,9 +7,117 @@ namespace Physics
     public class Collision
 	{
         public Vector3 normal;
-        public float intersection;
+        public Vector2 intersection;
         public bool colliding = false;
         public Vector3 collisionPoint;
+
+        public Collision ()
+        {
+            normal = Vector3.zero;
+            collisionPoint = Vector3.zero;
+            colliding = false;
+            intersection = Vector2.zero;
+        }
+
+        public static Collision Collide(PhysicsCollider a, PhysicsCollider b)
+		{
+            Collision collision = new Collision();
+
+            if (a.colliderType == PhysicsCollider.ColliderType.POINT)
+            {
+                if (b.colliderType == PhysicsCollider.ColliderType.POINT)
+                {
+                    collision = Collide((Point)a.colliderShape, (Point)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.CIRCLE)
+                {
+                    collision = Collide((Circle)a.colliderShape, (Point)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.AXIS_RECTANGLE)
+                {
+                    collision = Collide((Point)a.colliderShape, (AABB)b.colliderShape);
+                }
+            }
+
+            if (a.colliderType == PhysicsCollider.ColliderType.CIRCLE)
+            {
+                if (b.colliderType == PhysicsCollider.ColliderType.POINT)
+                {
+                    collision = Collide((Circle)a.colliderShape, (Point)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.CIRCLE)
+                {
+                    collision = Collide((Circle)a.colliderShape, (Circle)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.AXIS_RECTANGLE)
+                {
+                    collision = Collide((Circle)a.colliderShape, (AABB)b.colliderShape);
+                }
+            }
+
+            if (a.colliderType == PhysicsCollider.ColliderType.AXIS_RECTANGLE)
+            {
+                if (b.colliderType == PhysicsCollider.ColliderType.POINT)
+                {
+                    collision = Collide((Point)a.colliderShape, (AABB)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.CIRCLE)
+                {
+                    collision = Collide((Circle)a.colliderShape, (AABB)b.colliderShape);
+                }
+
+                if (b.colliderType == PhysicsCollider.ColliderType.AXIS_RECTANGLE)
+                {
+                    collision = Collide((AABB)a.colliderShape, (AABB)b.colliderShape);
+                }
+            }
+            return collision;
+        }
+        public static Collision Collide(Point a, Point b)
+		{
+            Debug.Log("Point Point");
+            Collision collision = null; // to do
+            return collision;
+        }
+
+        public static Collision Collide(Point a, AABB b)
+		{
+            Debug.Log("Point AABB");
+            Collision collision = null; // to do
+            return collision;
+        }
+
+        public static Collision Collide(Circle a, Circle b)
+		{
+            Debug.Log("Circle Circle");
+            Collision collision = a.circleCollision(b);
+            return collision;
+        }
+
+        public static Collision Collide(Circle a, Point b)
+		{
+            Debug.Log("Circle Point");
+            Collision collision = null; // to do
+            return collision;
+        }
+
+        public static Collision Collide(Circle a, AABB b)
+		{
+            Debug.Log("Circle AABB");
+            Collision collision = b.CircleCollision(a);
+            return collision;
+        }
+
+        public static Collision Collide(AABB a, AABB b)
+		{
+            Collision collision = a.AABBAABB(b);
+            return collision;
+		}
 	}
 
     public class PhysicsCollider : MonoBehaviour
@@ -27,19 +135,7 @@ namespace Physics
 
         public Collision Colliding(PhysicsCollider other)
 		{
-            Collision collision = new Collision();
-
-
-            if (this.colliderType == ColliderType.AXIS_RECTANGLE)
-			{
-
-                AABB rect = this.colliderShape.GetShape<AABB>();
-
-                if (other.colliderType == ColliderType.AXIS_RECTANGLE)
-				{
-                    collision = rect.AABBAABB(other.colliderShape.GetShape<AABB>());
-				}
-			}
+            Collision collision = Collision.Collide(this, other);
 
             if (PhysicsEngine.debugMode)
             {
@@ -61,11 +157,7 @@ namespace Physics
 
             if (bodyA.bodyType == PhysicsBody.BodyType.Static)
 			{
-                bodyB.Move(-collision.normal * collision.intersection);
-			}
-            else if(bodyB.bodyType == PhysicsBody.BodyType.Static)
-			{
-                bodyA.Move(-collision.normal * collision.intersection);
+                bodyB.Move(collision.intersection);
 			}
             else
 			{
@@ -101,6 +193,7 @@ namespace Physics
 
         }
 
+        /*
         public Collision PointCollision(Point thisPointCollider, Point otherPointCollider)
 		{
             Collision collision = new Collision();
@@ -114,7 +207,7 @@ namespace Physics
 			}
             return collision;
 		}
-
+        */
 
 		void Start()
 		{
@@ -129,7 +222,7 @@ namespace Physics
                     break;
 
                 case ColliderType.AXIS_RECTANGLE:
-                    colliderShape = new AABB(this.transform.position, this.transform.localScale.x, this.transform.localScale.y);
+                    colliderShape = new AABB(this.transform.position, new Vector3(this.transform.position.x - this.transform.localScale.x/2f, this.transform.position.y - this.transform.localScale.y/2f), new Vector3(this.transform.position.x + this.transform.localScale.x/2f, this.transform.position.y + this.transform.localScale.y/2f));
                     break;
             }
         }
@@ -137,9 +230,6 @@ namespace Physics
 		void Update()
 		{
 			colliderShape.position = transform.position;
-            colliderShape.GetShape<AABB>().width = transform.localScale.x;
-            colliderShape.GetShape<AABB>().height = transform.localScale.y;
-
         }
         void OnDrawGizmos()
         {

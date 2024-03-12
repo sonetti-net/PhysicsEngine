@@ -17,7 +17,7 @@ namespace Physics
         public bool detailedDebug;
 
         [Header("Engine")]
-        [SerializeField] Vector3 Gravity = new Vector3(0, -9.8f, 0);
+        [SerializeField] public Vector3 Gravity = new Vector3(0, -9.8f, 0);
         [SerializeField] float G = 6.67430e-11f;
         [SerializeField] bool objectGravity = true;
 
@@ -44,6 +44,7 @@ namespace Physics
 
         void UpdateCollisions()
         {
+            Debug.Log("Num colliders: " + (physicsColliders.Count-1));
             for (int i = 0; i < physicsColliders.Count - 1; i++)
             {
                 PhysicsCollider bodyA = physicsColliders[i];
@@ -57,8 +58,10 @@ namespace Physics
                     if (bodyA.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static && bodyB.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static)
                         continue;
 
+                    if (bodyB.colliderShape != null)
+					{
                         Collision collision = bodyA.Colliding(bodyB);
-
+                    }
                 }
             }
         }
@@ -122,13 +125,13 @@ namespace Physics
         void Update()
         {
             UpdateVelocity();
+            if (objectGravity)
+            {
+                HandleGravity();
+            }
             UpdatePositions();
             UpdateCollisions();
             DrawDebugLines();
-            if (objectGravity)
-			{
-                HandleGravity();
-            }
         }
 
 		void OnValidate()

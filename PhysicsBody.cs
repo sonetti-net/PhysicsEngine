@@ -49,6 +49,7 @@ namespace Physics
 
         public void Move(Vector3 force)
         {
+            Debug.DrawRay(this.transform.position, force, Color.magenta, 0.5f);
             if (this.bodyType != BodyType.Static)
                 this.transform.position += force;
         }
