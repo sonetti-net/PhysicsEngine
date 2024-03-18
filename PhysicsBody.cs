@@ -19,7 +19,6 @@ namespace Physics
             Dynamic
         }
 
-
         public BodyType bodyType = BodyType.Dynamic;
 
         public Vector3 linearVelocity = Vector3.zero;
@@ -31,11 +30,9 @@ namespace Physics
         public float mass = 1f;
         public float invMass = 0f;
 
-
         public float angularVelocity;
         public float restitution;
         public float area;
-        
 
         public void AddForce(Vector3 force)
         {
@@ -43,15 +40,27 @@ namespace Physics
 			{
                 Vector3 acceleration = force / this.mass;
                 this.linearVelocity += acceleration * Time.deltaTime;
-            }
-                
+            }      
         }
 
         public void Move(Vector3 force)
         {
             Debug.DrawRay(this.transform.position, force, Color.magenta, 0.5f);
+            force.z = 0;
             if (this.bodyType != BodyType.Static)
+			{
                 this.transform.position += force;
+                if (this.GetComponent<PhysicsCollider>().colliderShape != null)
+				{
+                    this.GetComponent<PhysicsCollider>().colliderShape.transformUpdateRequired = true;
+                }
+            }
+        }
+
+        public void MoveTo(Vector3 position)
+		{
+            this.transform.position = position;
+            this.GetComponent<PhysicsCollider>().colliderShape.transformUpdateRequired = true;
         }
 
 		private void OnValidate()

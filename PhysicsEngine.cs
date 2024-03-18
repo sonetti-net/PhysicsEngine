@@ -38,13 +38,15 @@ namespace Physics
         {
             foreach (PhysicsBody body in physicsBodies)
             {
-                body.gameObject.transform.position += (Vector3)body.linearVelocity * Time.deltaTime;
+                if (body)
+				{
+                    body.Move(body.linearVelocity * Time.deltaTime);
+                }
             }
         }
 
         void UpdateCollisions()
         {
-            Debug.Log("Num colliders: " + (physicsColliders.Count-1));
             for (int i = 0; i < physicsColliders.Count - 1; i++)
             {
                 PhysicsCollider bodyA = physicsColliders[i];
@@ -55,16 +57,32 @@ namespace Physics
                     PhysicsCollider bodyB = physicsColliders[j];
 
                     // Do not do collision if both are static.
-                    if (bodyA.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static && bodyB.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static)
-                        continue;
-
-                    if (bodyB.colliderShape != null)
+                    if (bodyA.GetComponent<PhysicsBody>() && bodyB.GetComponent<PhysicsBody>())
 					{
-                        Collision collision = bodyA.Colliding(bodyB);
+                        if (bodyA.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static && bodyB.GetComponent<PhysicsBody>().bodyType == PhysicsBody.BodyType.Static)
+                            continue;
                     }
+
+                    Collision collision = bodyA.Colliding(bodyB);
                 }
             }
         }
+
+        public Collision Collides(PhysicsCollider a)
+		{
+            Collision collision = new Collision();
+
+            for (int i = 0; i < physicsColliders.Count; i++)
+			{
+                collision = Collision.Collide(a, physicsColliders[i]);
+                if (collision.colliding)
+				{
+                    break;
+				}
+			}
+
+            return collision;
+		}
 
         void HandleGravity()
 		{
@@ -92,12 +110,17 @@ namespace Physics
 		{
             foreach (PhysicsCollider collider in physicsColliders)
 			{
-                physicsDebug.DrawDebugLines(collider.colliderShape);
+                if (collider.colliderShape != null)
+				{
+                    physicsDebug.DrawDebugLines(collider.colliderShape);
+                }
+                
 			}
 		}
 
         public void AddNewBody(GameObject go)
 		{
+            Debug.Log(go.name);
             physicsBodies.Add(go.GetComponent<PhysicsBody>());
             physicsColliders.Add(go.GetComponent<PhysicsCollider>());
 		}
@@ -110,16 +133,6 @@ namespace Physics
             physicsBodies.AddRange(GameObject.FindObjectsOfType<PhysicsBody>());
             physicsColliders.AddRange(GameObject.FindObjectsOfType<PhysicsCollider>());
         }
-
-        void NarrowPhase()
-		{
-
-		}
-
-        void BroadPhase()
-		{
-
-		}
 
         // Update is called once per frame
         void Update()
